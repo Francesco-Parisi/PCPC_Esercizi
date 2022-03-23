@@ -19,7 +19,8 @@ int main(int argc, char** argv){
     MPI_Get_processor_name(name, &len);
     
     if(rank==0){
-        val=10; 
+        printf("Inserisci il valore che il Processo [%d] deve inviare:\n", rank);
+        scanf("%d", &val);
         MPI_Send(&val,1,MPI_INT,1,1,MPI_COMM_WORLD);
         printf("- Processore %d ha inviato %d al processo %d\n", rank, val, 1);
         MPI_Recv(&val,1,MPI_INT,1,2,MPI_COMM_WORLD,&status);
