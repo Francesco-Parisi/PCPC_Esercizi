@@ -1,4 +1,4 @@
-/*** Esercizio 2.1 Ring
+/*** Esercizio 2.1 - Ring
  * 
  * Dati P processi, il processo con rank i invia un valore intero al processo con rank i+1.
  * Notare che lo schema di comunicazione è ad anello e toroidale, quindi il processo con rank

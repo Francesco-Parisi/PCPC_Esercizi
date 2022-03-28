@@ -1,13 +1,8 @@
-/*** Esercizio 3.1 - Ring 2 Non Bloccante
+/*** Esercizio 3.2 - Ring 2 Ready
  *
- * Dati P processori realizzare un programma MPI dove, ogni processore
- * invia il proprio rank al vicino destro nell'ordine di rank definito
- * da MPI_COMM_WORLD e riceve dal vicino sinistro. La comunicazione
- * del proprio rank deve avvenire in modo non bloccante. Inoltre ogni
- * processo inoltra i messaggi che riceve dal vicino sinistro e somma
- * tutti i valori compreso il suo in una variabile. Il processo termina
- * quando ogni processo ha ricevuto il rank di tutti gli altri e scrive
- * su standard output il valore della somma calcolato.
+ * Sviluppare lo stesso programma ma sfruttando la
+ * comunicazione bloccante e le differenti modalità
+ * di comunicazione
  * 
  ***/
 
@@ -39,8 +34,7 @@ int main(int argc, char **argv)
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    MPI_Isend(&rank, 1, MPI_INT, next, 111, MPI_COMM_WORLD, &request);
-
+    MPI_Rsend(&rank, 1, MPI_INT, next, 111, MPI_COMM_WORLD);
 
     for (int i = 0; i < size - 1; i++)
     {
@@ -49,7 +43,7 @@ int main(int argc, char **argv)
         sum += outrank;
         if (outrank != next)
         {
-            MPI_Isend(&outrank, 1, MPI_INT, next, 111, MPI_COMM_WORLD, &request);
+            MPI_Rsend(&outrank, 1, MPI_INT, next, 111, MPI_COMM_WORLD);
         }
     }
     printf("Processo [%d] ha ricevuto rank %d dal Processo [%d]\n", rank, outrank, next);
