@@ -8,7 +8,7 @@
  * tutti i valori compreso il suo in una variabile. Il processo termina
  * quando ogni processo ha ricevuto il rank di tutti gli altri e scrive
  * su standard output il valore della somma calcolato.
- * 
+ *
  ***/
 
 #include <stdio.h>
@@ -18,6 +18,7 @@
 int main(int argc, char **argv)
 {
     int rank, size, next, prev, value, outrank;
+    double start, end;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -38,9 +39,9 @@ int main(int argc, char **argv)
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
+    start = MPI_Wtime(); // Avvio tempo
 
     MPI_Isend(&rank, 1, MPI_INT, next, 111, MPI_COMM_WORLD, &request);
-
 
     for (int i = 0; i < size - 1; i++)
     {
@@ -54,12 +55,16 @@ int main(int argc, char **argv)
     }
     printf("Processo [%d] ha ricevuto rank %d dal Processo [%d]\n", rank, outrank, next);
     fflush(stdout);
-    
+
     MPI_Barrier(MPI_COMM_WORLD);
-    
-    if (rank == size-1)
+    end = MPI_Wtime();
+
+    if (rank == size - 1)
     {
-        printf("Somma Totale (0-%d): %d\n", size-1,sum);
+        printf("\n-------------------------------------------*\n");
+        printf("Somma Totale (0-%d): %d\n", size - 1, sum);
+        printf("Tempo in ms = %f\n", end - start);
+        printf("-------------------------------------------*\n");
     }
 
     MPI_Finalize();

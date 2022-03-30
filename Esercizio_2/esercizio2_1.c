@@ -1,5 +1,5 @@
 /*** Esercizio 2.1 - Ring
- * 
+ *
  * Dati P processi, il processo con rank i invia un valore intero al processo con rank i+1.
  * Notare che lo schema di comunicazione è ad anello e toroidale, quindi il processo con rank
  * P-1 invia al processo con rank 0. L'esecuzione del programma prevede 10 iterazioni.
@@ -10,7 +10,7 @@
  * medio di round di comunicazione necessari per arrivare a convergenza utilizzando P ed S.
  * Notare che tra le varie iterazioni non si deve inizializzare nuovamente il generatore di numeri
  * casuali. Si consiglia di inizializzare i generatori utilizzando il valore del rank.
- * 
+ *
  ***/
 
 #include <stdio.h>
@@ -20,7 +20,7 @@
 #include <mpi.h>
 #include <stdbool.h>
 
-#define S 2000
+#define S 1500
 #define I 10
 
 int main(int argc, char **argv)
@@ -31,7 +31,7 @@ int main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    int sum = 0, newsum = 0;
+    int sum = 0;
     int count = 0;
     bool flag = false;
     MPI_Status status;
@@ -48,55 +48,65 @@ int main(int argc, char **argv)
         exit(0);
     }
 
-    for (int i = 0; i < I; i++)
+    if (rank == 0)
     {
-
-        if (rank == 0)
+        while (!flag)
         {
-            while (flag != true)
+            if (count == 0)
             {
-                count++;
                 value = rand() % 100 + 1;
-                newsum = sum + value;
-                MPI_Send(&newsum, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
-                printf("Processo [%d] ha ricevuto %d e con %d invia la somma %d al Processo [%d]\n", rank, sum, value, sum + value, next);
+                sum = sum + value;
+                MPI_Send(&sum, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
+                printf("Processo [%d] - Random ricevuto: %d, Somma inviata al Processo [%d]: %d\n", rank, value, next, sum);
+            }
+            count++;
+            // printf("count: %d\n", count);
+            MPI_Recv(&sum, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+
+            if (sum > S)
+            {
+                flag = true;
+                MPI_Send(&sum, 1, MPI_INT, next, 0, MPI_COMM_WORLD);
+            }
+            else
+            {
+                value = rand() % 100 + 1;
+                sum = sum + value;
+                printf("Processo [%d] - Random ricevuto: %d, Somma inviata al Processo [%d]: %d\n", rank, value, next, sum);
                 fflush(stdout);
-
-                MPI_Recv(&sum, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-                if (sum > S)
-                {
-                    flag = true;
-                }
+                MPI_Send(&sum, 1, MPI_INT, next, 0, MPI_COMM_WORLD);
             }
         }
-        else
+    }
+    else
+    {
+        while (!flag)
         {
-            while (flag != true)
+            MPI_Recv(&sum, 1, MPI_INT, prev, 0, MPI_COMM_WORLD, &status);
+            value = rand() % 100 + 1;
+            sum = sum + value;
+
+            if (sum <= S)
             {
-                MPI_Recv(&sum, 1, MPI_INT, prev, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-                if (sum <= S)
-                {
-                    value = rand() % 100 + 1;
-                    newsum = sum + value;
-
-                    MPI_Send(&newsum, 1, MPI_INT, next, 0, MPI_COMM_WORLD);
-                    printf("Processo [%d] ha ricevuto %d e con %d invia la somma %d al Processo [%d]\n", rank, sum, value, newsum, next);
-                    fflush(stdout);
-                }
-                else
-                {
-                    flag = true;
-                    MPI_Send(&sum, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
-                }
+                MPI_Send(&sum, 1, MPI_INT, next, 0, MPI_COMM_WORLD);
+                printf("Processo [%d] - Random ricevuto: %d, Somma inviata al Processo [%d]: %d\n", rank, value, next, sum);
+                fflush(stdout);
+            }
+            else
+            {
+                flag = true;
+                MPI_Send(&sum, 1, MPI_INT, next, 0, MPI_COMM_WORLD);
             }
         }
     }
 
+    MPI_Barrier(MPI_COMM_WORLD);
+
     if (rank == 0)
     {
-        printf("\nRound Totali: %d\nSomma totale: %d\n", count, sum);
+        printf("\n--------------------------*\n");
+        printf("Threshold: %d\nRound Totali: %d\nMedia Round: %.2f\n", S,count, (float)count / I);
+        printf("--------------------------*\n");
     }
 
     MPI_Finalize();
