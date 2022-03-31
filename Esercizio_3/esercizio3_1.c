@@ -64,7 +64,7 @@ int main(int argc, char **argv)
         printf("\n-------------------------------------------*\n");
         printf("Somma Totale (0-%d): %d\n", size - 1, sum);
         printf("Tempo in ms = %f\n", end - start);
-        printf("-------------------------------------------*\n");
+        printf("---------------------------------------------*\n");
     }
 
     MPI_Finalize();

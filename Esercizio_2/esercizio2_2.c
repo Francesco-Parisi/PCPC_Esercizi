@@ -25,6 +25,8 @@ int main(int argc, char** argv){
         exit(0);
     }
 
+    MPI_Barrier(MPI_COMM_WORLD);
+
     if(rank != 0){
         value = rand()%100+1;
         MPI_Send(&value, 1,MPI_INT, 0, 111, MPI_COMM_WORLD);
@@ -48,12 +50,15 @@ int main(int argc, char** argv){
         for(int i=0;i<size-1;i++){
             printf("%d ",array[i]);
         }
+        MPI_Barrier(MPI_COMM_WORLD);
+        end = MPI_Wtime();
 
         float avg = (float) sum/(size-1);
         printf("]\n\n*----------------------------*\n");
         printf("Massimo: %d\n", max);
         printf("Minimo: %d\n", min);
         printf("Media: %f\n", avg);
+        printf("Tempo in ms = %f\n", end-start);
         printf("*----------------------------*\n");
     }
     free(array);

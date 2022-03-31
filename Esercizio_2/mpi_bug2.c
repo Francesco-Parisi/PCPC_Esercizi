@@ -1,4 +1,4 @@
-/***Bug - Individuato problema quando si invia dato di tipo int e si riceve float.
+/***Bug - Individuato problema quando si invia dato di tipo int e si riceve float. Linea 27
  * Linea 12: cambiare tipo float in int
  * Linea 33: campiare MPI_Datatype da MPI_FLOAT a MPI_INT
  * Linea 36: cambiare valore stampa da %f a %d
@@ -22,6 +22,7 @@ MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 if (rank == 0) {
   if (numtasks > 2) 
     printf("Numtasks=%d. Only 2 needed. Ignoring extra...\n",numtasks);
+    
   for (i=0; i<10; i++) {
     alpha = i*10;
     MPI_Isend(&alpha, 1, MPI_INT, 1, tag, MPI_COMM_WORLD, &reqs[i]);

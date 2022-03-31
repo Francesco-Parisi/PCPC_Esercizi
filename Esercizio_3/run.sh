@@ -6,14 +6,13 @@
 # Description: Compila ed esegue il codice.
 #####################################
 
+printf "\nCompilazione in corso...\n"
 mpicc $1.c -o $1
 if [ $? -eq 0 ]; then
-   printf "\nCompilazione in corso...\n"
-
+      sleep 3  
+      clear
+      printf "\nCompilazione effettuata\n"
 else
    echo "Errore imprevisto!"
 fi
-
-sleep 3
-
 mpirun --allow-run-as-root -np $2 $1
