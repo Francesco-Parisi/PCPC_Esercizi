@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 
     MPI_Barrier(MPI_COMM_WORLD);
     start = MPI_Wtime(); // Avvio tempo
-
+    
     //Broadcasting(rank, size, 10, MPI_FLOAT);
     //Scattering(rank, size, MPI_FLOAT);
     Gathering(rank, size, value, MPI_FLOAT);
