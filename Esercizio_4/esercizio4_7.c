@@ -1,9 +1,15 @@
 /*** Esercizio 4.7
  *
- * Sviluppare un programma MPI che data una matrice di dimensione NxM e
- * P processi, calcola il massimo per ogni riga della matrice utilizzando
- * in modo equo i P processi. Alla terminazione il master scrive su standard
- * output il massimo di ogni riga.
+ * Sviluppare un programma MPI che dato un array, A di interi di lunghezza N,
+ * utilizza equamente P processori per aggiornare i valori in A. Ogni elemento
+ * A[i] è calcoloato utilizzando la seguente operazione:
+ * - A[i]=A[i-1]+A[i]+A[i+1], per ogni i, 1...N-2
+ * - A[0]=A[N-1]+[0]+A[1], i=0
+ * - A[N-1]=A[N-2]+[N-1]+A[0], i=N-1
+ * l'array A viene inizializzato nel processo master e gli slave eseguono le
+ * operazioni solo sulla propria porzione di array; ogni processo slave invia
+ * la sua porzione di array nuovamente al master. Alla terminazione delle
+ * ricezioni il processo master scrive su standard output il tempo di esecuzione.
  *
  * ***/
 
@@ -25,10 +31,7 @@ int main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    int max;
-    int row = size;
-    int column = 5;
-    int a[row][column], b[row];
+    int a[size];
 
     if (size < 2)
     {
@@ -40,55 +43,14 @@ int main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
     start = MPI_Wtime();
 
-    if (rank == 0)
-    {
-        for (int i = 0; i < row; i++)
-        {
-            for (int j = 0; j < column; j++)
-            {
-                a[i][j] = rand() % 100;
-            }
-        }
 
-        printf("\nProcesso [%d] ha inviato l'array:\n", rank);
-        for (int i = 0; i < row; i++)
-        {
-            for (int j = 0; j < column; j++)
-            {
-                printf("%d ", a[i][j]);
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
 
-    MPI_Bcast(a, row * column, MPI_INT, 0, MPI_COMM_WORLD);
-    printf("Processo [%d] ha ricevuto dal Processo [%d]: [ ", rank, 0);
-
-    max = a[rank][0];
-    for (int i = 0; i < column; i++)
-    {
-        printf("%d ", a[rank][i]);
-        if (max < a[rank][i])
-            max = a[rank][i];
-    }
-    printf("]\n");
-
-    MPI_Gather(&max, 1, MPI_INT, b, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     MPI_Barrier(MPI_COMM_WORLD);
     end = MPI_Wtime();
 
     if (rank == 0)
     {
-        printf("\nIl Processo [%d] ha ricevuto il massimo per ogni riga:\n", rank);
-        fflush(stdout);
-
-        for (int i = 0; i < size; i++)
-        {
-            printf("Riga %d - Massimo: %d\n", i, b[i]);
-        }
-
         printf("\n-------------------------------------------*\n");
         printf("Tempo in ms = %f\n", end - start);
         printf("-------------------------------------------*\n");

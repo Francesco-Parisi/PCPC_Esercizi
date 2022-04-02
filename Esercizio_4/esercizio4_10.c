@@ -1,9 +1,10 @@
-/*** Esercizio 4.8
+/*** Esercizio 4.10
  *
  * Sviluppare un programma MPI che data una matrice di dimensione NxM e
- * P processi, calcola il massimo per ogni riga della matrice utilizzando
- * in modo equo i P processi. Alla terminazione il master scrive su standard
- * output il massimo di ogni riga.
+ * P processi, calcola il massimo per ogni riga e il minimo per ogni colonna
+ * della matrice utilizzando in modo equo i P processi. Alla terminazione il
+ * master scrive su standard output il massimo di ogni riga e il minimo di
+ * ogni colonna.
  *
  * ***/
 
@@ -25,10 +26,10 @@ int main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    int max;
+    int max, min, value;
     int row = size;
-    int column = 5;
-    int a[row][column], b[row];
+    int column = size;
+    int a[row][column], maxbuffer[row], minbuffer[column];
 
     if (size < 2)
     {
@@ -63,18 +64,23 @@ int main(int argc, char **argv)
     }
 
     MPI_Bcast(a, row * column, MPI_INT, 0, MPI_COMM_WORLD);
-    printf("Processo [%d] ha ricevuto dal Processo [%d]: [ ", rank, 0);
+
+    min = a[0][rank];
+    for (int i = 0; i < row; i++)
+    {
+        if (min > a[i][rank])
+            min = a[i][rank];
+    }
 
     max = a[rank][0];
     for (int i = 0; i < column; i++)
     {
-        printf("%d ", a[rank][i]);
-        MPI_Reduce(&a[rank][i],b,1,MPI_INT,MPI_MAX,0,MPI_COMM_WORLD);
-
+        if (max < a[rank][i])
+            max = a[rank][i];
     }
-    printf("]\n");
 
-    //MPI_Gather(&max, 1, MPI_INT, b, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Gather(&min, 1, MPI_INT, minbuffer, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Gather(&max, 1, MPI_INT, maxbuffer, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -82,12 +88,12 @@ int main(int argc, char **argv)
 
     if (rank == 0)
     {
-        printf("\nIl Processo [%d] ha ricevuto il massimo per ogni riga:\n", rank);
+        printf("\nIl Processo [%d] ha ricevuto per ogni riga e colonna:\n", rank);
         fflush(stdout);
 
         for (int i = 0; i < size; i++)
         {
-            printf("Riga %d - Massimo: %d\n", i, b[i]);
+            printf("Colonna %d - Minimo: %d, Riga %d - Massimo: %d\n", i, minbuffer[i], i, maxbuffer[i]);
         }
 
         printf("\n-------------------------------------------*\n");
