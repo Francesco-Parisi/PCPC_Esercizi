@@ -4,58 +4,56 @@
 #include <time.h>
 
 // Bloccante - Il Processo con rank 0 invia a tutti i processi 1...P-1 un array.
-void BlockingBroadcasting(int rank, int num, int size, MPI_Status status)
+void BlockingBroadcasting(int rank, int num, int size, MPI_Datatype type, MPI_Status status)
 {
     int *array = (int *)malloc(sizeof(int) * num);
 
-    for (int i = 0; i < num; i++)
-    {
-        array[i] = i;
-    }
-
     if (rank == 0)
     {
+        for (int i = 0; i < num; i++)
+        {
+            array[i] = i + 1;
+        }
+
         for (int i = 0; i < size; i++)
         {
-            MPI_Send(array, 1, MPI_INT, i, 111, MPI_COMM_WORLD);
+            MPI_Send(array, num, type, i, 111, MPI_COMM_WORLD);
         }
         printf("Processo [%d] ha inviato l'array: [ ", rank);
+
         for (int i = 0; i < num; i++)
         {
             printf("%d ", array[i]);
         }
         printf("]\n");
     }
-    else
+
+    MPI_Recv(array, num, type, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+    printf("Processo [%d] ha ricevuto dal Processo [%d]: [", rank, 0);
+
+    for (int i = 0; i < num; i++)
     {
-
-        MPI_Recv(array, 1, MPI_INT, 0, 111, MPI_COMM_WORLD, &status);
-        printf("Processo [%d] ha ricevuto dal Processo [%d]: [", rank++, 0);
-
-        for (int i = 0; i < num; i++)
-        {
-            printf("%d ", array[i]);
-        }
-        printf("]\n");
+        printf("%d ", array[i]);
     }
+    printf("]\n");
+
     free(array);
 }
 
 // Non Bloccante - Il Processo con rank 0 invia a tutti i processi 1...P-1 un array.
-void NotBlockingBroadcasting(int rank, int num, int size, MPI_Status status, MPI_Request request)
+void NotBlockingBroadcasting(int rank, int num, int size, MPI_Datatype type, MPI_Status status, MPI_Request request)
 {
     int *array = (int *)malloc(sizeof(int) * num);
 
-    for (int i = 0; i < num; i++)
-    {
-        array[i] = i;
-    }
-
     if (rank == 0)
     {
+        for (int i = 0; i < num; i++)
+        {
+            array[i] = i;
+        }
         for (int i = 0; i < size; i++)
         {
-            MPI_Isend(array, 1, MPI_INT, i, 111, MPI_COMM_WORLD, &request);
+            MPI_Isend(array, num, type, i, 111, MPI_COMM_WORLD, &request);
         }
         printf("Processo [%d] ha inviato l'array: [ ", rank);
         for (int i = 0; i < num; i++)
@@ -64,20 +62,18 @@ void NotBlockingBroadcasting(int rank, int num, int size, MPI_Status status, MPI
         }
         printf("]\n");
     }
-    else
+
+    MPI_Irecv(array, num, type, 0, 111, MPI_COMM_WORLD, &request);
+    printf("Processo [%d] ha ricevuto dal Processo [%d]: [", rank++, 0);
+
+    MPI_Wait(&request, &status);
+
+    for (int i = 0; i < num; i++)
     {
-
-        MPI_Irecv(array, 1, MPI_INT, 0, 111, MPI_COMM_WORLD, &request);
-        printf("Processo [%d] ha ricevuto dal Processo [%d]: [", rank++, 0);
-
-        MPI_Wait(&request, &status);
-
-        for (int i = 0; i < num; i++)
-        {
-            printf("%d ", array[i]);
-        }
-        printf("]\n");
+        printf("%d ", array[i]);
     }
+    printf("]\n");
+
     free(array);
 }
 
@@ -85,7 +81,7 @@ void NotBlockingBroadcasting(int rank, int num, int size, MPI_Status status, MPI
 void Broadcasting(int rank, int size, int dim, MPI_Datatype type)
 {
     float buffer[dim];
-    
+
     if (rank == 0)
     {
 
@@ -109,30 +105,24 @@ void Broadcasting(int rank, int size, int dim, MPI_Datatype type)
         printf("%.2f ", buffer[i]);
     }
     printf("]\n");
-
 }
 
 // Bloccante Il Processo con rank 0 riceve da tutti i processi 1...P-1 un valore intero, formando un array.
-void BlockingGathering(int rank, int size, MPI_Status status)
+void BlockingGathering(int rank, int size, MPI_Datatype type, MPI_Status status)
 {
     int val;
     int *array = (int *)malloc(sizeof(int) * size);
 
-    if (rank != 0)
+    val = rank;
+    MPI_Send(&val, 1, type, 0, 111, MPI_COMM_WORLD);
+    printf("Processo [%d] ha inviato %d al Processo [%d]\n", rank, val, 0);
+
+    if (rank == 0)
     {
-        val = rank;
-        MPI_Send(&val, 1, MPI_INT, 0, 111, MPI_COMM_WORLD);
-        printf("Processo [%d] ha inviato %d al Processo [%d]\n", rank, val, 0);
-    }
-    else
-    {
-        for (int i = 0; i < size - 1; i++)
+        printf("Processo [%d] ha ricevuto: [ ", rank);
+        for (int i = 0; i < size; i++)
         {
-            MPI_Recv(&array[i], 1, MPI_INT, MPI_ANY_SOURCE, 111, MPI_COMM_WORLD, &status);
-        }
-        printf("Processo [%d] ha recevuto: [ ", rank);
-        for (int i = 0; i < size - 1; i++)
-        {
+            MPI_Recv(&array[i], 1, type, MPI_ANY_SOURCE, 111, MPI_COMM_WORLD, &status);
             printf("%d ", array[i]);
         }
         printf("]\n");
@@ -141,27 +131,25 @@ void BlockingGathering(int rank, int size, MPI_Status status)
 }
 
 // Non Bloccante - Il Processo con rank 0 riceve da tutti i processi 1...P-1 un valore intero, formando un array.
-void NotBlockingGathering(int rank, int size, MPI_Status status, MPI_Request request)
+void NotBlockingGathering(int rank, int size, MPI_Datatype type, MPI_Status status, MPI_Request request)
 {
     int val;
     int *array = (int *)malloc(sizeof(int) * size);
 
-    if (rank != 0)
+    val = rank;
+    MPI_Isend(&val, 1, type, 0, 111, MPI_COMM_WORLD, &request);
+    printf("Processo [%d] ha inviato %d al Processo [%d]\n", rank, val, 0);
+
+    if (rank == 0)
     {
-        val = rank;
-        MPI_Isend(&val, 1, MPI_INT, 0, 111, MPI_COMM_WORLD, &request);
-        printf("Processo [%d] ha inviato %d al Processo [%d]\n", rank, val, 0);
-    }
-    else
-    {
-        for (int i = 0; i < size - 1; i++)
+        for (int i = 0; i < size; i++)
         {
-            MPI_Irecv(&array[i], 1, MPI_INT, MPI_ANY_SOURCE, 111, MPI_COMM_WORLD, &request);
+            MPI_Irecv(&array[i], 1, type, MPI_ANY_SOURCE, 111, MPI_COMM_WORLD, &request);
         }
         MPI_Wait(&request, &status);
 
         printf("Processo [%d] ha recevuto: [ ", rank);
-        for (int i = 0; i < size - 1; i++)
+        for (int i = 0; i < size; i++)
         {
             printf("%d ", array[i]);
         }
@@ -171,8 +159,9 @@ void NotBlockingGathering(int rank, int size, MPI_Status status, MPI_Request req
 }
 
 // Funzione che implementa MPI_Gather per la ricezione di un array al nodo master
-void Gathering(int rank, int size, float value, MPI_Datatype type){
-    
+void Gathering(int rank, int size, float value, MPI_Datatype type)
+{
+
     float arrayout[size];
     value = (float)rank + 1;
 
@@ -188,11 +177,10 @@ void Gathering(int rank, int size, float value, MPI_Datatype type){
         }
         printf("]\n");
     }
-
 }
 
 // Bloccante - Il Processo con rank 0 invia una porzione di array ad ogni processo in 1...P-1.
-void BlockingScatter(int rank, int size, MPI_Status status)
+void BlockingScatter(int rank, int size, MPI_Datatype type, MPI_Status status)
 {
     int val;
     int *array = (int *)malloc(sizeof(int) * size);
@@ -205,24 +193,22 @@ void BlockingScatter(int rank, int size, MPI_Status status)
             array[i] = i;
         }
         printf("Processo [%d] ha inviato [", rank);
-        for (int i = 1; i < size; i++)
+        for (int i = 0; i < size; i++)
         {
-            MPI_Send(&array[i], 1, MPI_INT, i, 111, MPI_COMM_WORLD);
+            MPI_Send(&array[i], 1, type, i, 111, MPI_COMM_WORLD);
             printf("%d ", array[i]);
         }
         printf("]\n");
     }
-    else
-    {
-        MPI_Recv(&val, 1, MPI_INT, 0, 111, MPI_COMM_WORLD, &status);
-        printf("Processo [%d] ha ricevuto %d dal Processo [%d]\n", rank, val, 0);
-    }
+
+    MPI_Recv(&val, 1, type, 0, 111, MPI_COMM_WORLD, &status);
+    printf("Processo [%d] ha ricevuto %d dal Processo [%d]\n", rank, val, 0);
 
     free(array);
 }
 
 // Non Bloccante - Il Processo con rank 0 invia una porzione di array ad ogni processo in 1...P-1.
-void NotBlockingScatter(int rank, int size, MPI_Status status, MPI_Request request)
+void NotBlockingScatter(int rank, int size, MPI_Datatype type, MPI_Status status, MPI_Request request)
 {
     int val;
     int *array = (int *)malloc(sizeof(int) * size);
@@ -235,20 +221,18 @@ void NotBlockingScatter(int rank, int size, MPI_Status status, MPI_Request reque
             array[i] = i;
         }
         printf("Processo [%d] ha inviato [", rank);
-        for (int i = 1; i < size; i++)
+        for (int i = 0; i < size; i++)
         {
-            MPI_Isend(&array[i], 1, MPI_INT, i, 111, MPI_COMM_WORLD, &request);
+            MPI_Isend(&array[i], 1, type, i, 111, MPI_COMM_WORLD, &request);
             printf("%d ", array[i]);
         }
         printf("]\n");
     }
-    else
-    {
-        MPI_Irecv(&val, 1, MPI_INT, 0, 111, MPI_COMM_WORLD, &request);
 
-        MPI_Wait(&request, &status);
-        printf("Processo [%d] ha ricevuto %d dal Processo [%d]\n", rank, val, 0);
-    }
+    MPI_Irecv(&val, 1, type, 0, 111, MPI_COMM_WORLD, &request);
+
+    MPI_Wait(&request, &status);
+    printf("Processo [%d] ha ricevuto %d dal Processo [%d]\n", rank, val, 0);
 
     free(array);
 }
@@ -280,27 +264,26 @@ void Scattering(int rank, int size, MPI_Datatype type)
 }
 
 // Bloccante - Funzione in grado di supportare gli operatori di massimo, minimo e media di un array di interi.
-void BlockingReduce(int rank, int size, MPI_Status status)
+void BlockingReduce(int rank, int size, MPI_Datatype type, MPI_Status status)
 {
 
     int value, sum = 0, min, max;
-    int *array;
+    int *array = (int *)malloc(sizeof(int) * size);
 
     srand((unsigned)time(NULL) + rank);
 
     if (rank != 0)
     {
         value = rand() % 100 + 1;
-        MPI_Send(&value, 1, MPI_INT, 0, 111, MPI_COMM_WORLD);
+        MPI_Send(&value, 1, type, 0, 111, MPI_COMM_WORLD);
         printf("Processo [%d] ha inviato %d al Processo [%d]\n", rank, value, 0);
     }
     else
     {
-        array = (int *)malloc(sizeof(int) * size);
 
         for (int i = 0; i < size - 1; i++)
         {
-            MPI_Recv(&array[i], 1, MPI_INT, MPI_ANY_SOURCE, 111, MPI_COMM_WORLD, &status);
+            MPI_Recv(&array[i], 1, type, MPI_ANY_SOURCE, 111, MPI_COMM_WORLD, &status);
         }
         min = array[0];
         max = array[0];
@@ -313,7 +296,7 @@ void BlockingReduce(int rank, int size, MPI_Status status)
                 min = array[i];
         }
 
-        printf("Processo [%d] ha recevuto: [ ", rank);
+        printf("Processo [%d] ha ricevuto: [ ", rank);
         for (int i = 0; i < size - 1; i++)
         {
             printf("%d ", array[i]);
@@ -330,27 +313,26 @@ void BlockingReduce(int rank, int size, MPI_Status status)
 }
 
 // Non Bloccante - Funzione in grado di supportare gli operatori di massimo, minimo e media di un array di interi.
-void NotBlockingReduce(int rank, int size, MPI_Status status, MPI_Request request)
+void NotBlockingReduce(int rank, int size, MPI_Datatype type, MPI_Status status, MPI_Request request)
 {
 
     int value, sum = 0, min, max;
-    int *array;
+    int *array = (int *)malloc(sizeof(int) * size);
 
     srand((unsigned)time(NULL) + rank);
 
     if (rank != 0)
     {
         value = rand() % 100 + 1;
-        MPI_Isend(&value, 1, MPI_INT, 0, 111, MPI_COMM_WORLD, &request);
+        MPI_Isend(&value, 1, type, 0, 111, MPI_COMM_WORLD, &request);
         printf("Processo [%d] ha inviato %d al Processo [%d]\n", rank, value, 0);
     }
     else
     {
-        array = (int *)malloc(sizeof(int) * size);
 
         for (int i = 0; i < size - 1; i++)
         {
-            MPI_Irecv(&array[i], 1, MPI_INT, MPI_ANY_SOURCE, 111, MPI_COMM_WORLD, &request);
+            MPI_Irecv(&array[i], 1, type, MPI_ANY_SOURCE, 111, MPI_COMM_WORLD, &request);
         }
         MPI_Wait(&request, &status);
 
