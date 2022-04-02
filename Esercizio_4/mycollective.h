@@ -81,6 +81,37 @@ void NotBlockingBroadcasting(int rank, int num, int size, MPI_Status status, MPI
     free(array);
 }
 
+// Funzione che implementa MPI_Bcast per l'invio di un array dal nodo master
+void Broadcasting(int rank, int size, int dim, MPI_Datatype type)
+{
+    float buffer[dim];
+    
+    if (rank == 0)
+    {
+
+        for (int i = 0; i < dim; i++)
+        {
+            buffer[i] = i + 1;
+        }
+
+        printf("Processo [%d] ha inviato l'array: [", rank);
+        for (int i = 0; i < dim; i++)
+        {
+            printf("%.2f ", buffer[i]);
+        }
+        printf("]\n");
+    }
+    MPI_Bcast(buffer, dim, type, 0, MPI_COMM_WORLD);
+
+    printf("Processo [%d] ha ricevuto dal Processo [%d]: [", rank, 0);
+    for (int i = 0; i < dim; i++)
+    {
+        printf("%.2f ", buffer[i]);
+    }
+    printf("]\n");
+
+}
+
 // Bloccante Il Processo con rank 0 riceve da tutti i processi 1...P-1 un valore intero, formando un array.
 void BlockingGathering(int rank, int size, MPI_Status status)
 {
@@ -137,6 +168,27 @@ void NotBlockingGathering(int rank, int size, MPI_Status status, MPI_Request req
         printf("]\n");
     }
     free(array);
+}
+
+// Funzione che implementa MPI_Gather per la ricezione di un array al nodo master
+void Gathering(int rank, int size, float value, MPI_Datatype type){
+    
+    float arrayout[size];
+    value = (float)rank + 1;
+
+    MPI_Gather(&value, 1, MPI_FLOAT, arrayout, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+    printf("Processo [%d] ha inviato %.2f al Processo [%d]\n", rank, value, 0);
+
+    if (rank == 0)
+    {
+        printf("Processo [%d] ha ricevuto l'array: [", rank);
+        for (int i = 0; i < size; i++)
+        {
+            printf("%.2f ", arrayout[i]);
+        }
+        printf("]\n");
+    }
+
 }
 
 // Bloccante - Il Processo con rank 0 invia una porzione di array ad ogni processo in 1...P-1.
@@ -199,6 +251,32 @@ void NotBlockingScatter(int rank, int size, MPI_Status status, MPI_Request reque
     }
 
     free(array);
+}
+
+// Funzione che implementa MPI_Scatter per la ricezione di un valore dal nodo master ad ogni processo
+void Scattering(int rank, int size, MPI_Datatype type)
+{
+    float arrayin[size];
+    float arrayout;
+    if (rank == 0)
+    {
+
+        for (int i = 0; i < size; i++)
+        {
+            arrayin[i] = i + 1;
+        }
+
+        printf("Processo [%d] ha inviato l'array: [", rank);
+        for (int i = 0; i < size; i++)
+        {
+            printf("%.2f ", arrayin[i]);
+        }
+        printf("]\n");
+    }
+    MPI_Scatter(arrayin, 1, MPI_FLOAT, &arrayout, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
+    printf("Processo [%d] ha ricevuto dal Processo [%d] il valore %.2f\n", rank, 0, arrayout);
+    fflush(stdout);
 }
 
 // Bloccante - Funzione in grado di supportare gli operatori di massimo, minimo e media di un array di interi.

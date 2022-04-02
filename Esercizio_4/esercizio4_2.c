@@ -1,8 +1,8 @@
-/*** Esercizio 4.1 - Broadcasting
+/*** Esercizio 4.2 - Scattering
  *
- * Sviluppare un programma MPI che utilizza P processori,
- * dove il processo con rank 0 in MPI_COMM_WORLD invia un array di float
- * a tutti gli altri processi in MPI_COMM_WORLD.
+ * Sviluppare un programma MPI che utilizza P processori, il processo 
+ * con rank 0 in MPI_COMM_WORLD suddivide un array di float tra tutti i processi 
+ * in MPI_COMM_WORLD.
  *
  ***/
 
@@ -13,13 +13,15 @@
 int main(int argc, char **argv)
 {
 
-    int rank, size, dim = 10;
+    int rank, size;
     double start, end;
-    float array[dim];
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    float arrayin[size];
+    float arrayout;
 
     MPI_Barrier(MPI_COMM_WORLD);
     start = MPI_Wtime(); // Avvio tempo
@@ -27,26 +29,21 @@ int main(int argc, char **argv)
     if (rank == 0)
     {
 
-        for (int i = 0; i < dim; i++)
+        for (int i = 0; i < size; i++)
         {
-            array[i] = i + 1;
+            arrayin[i] = i + 1;
         }
 
         printf("Processo [%d] ha inviato l'array: [", rank);
-        for (int i = 0; i < dim; i++)
+        for (int i = 0; i < size; i++)
         {
-            printf("%.2f ", array[i]);
+            printf("%.2f ", arrayin[i]);
         }
         printf("]\n");
     }
-    MPI_Bcast(array, dim, MPI_FLOAT, 0, MPI_COMM_WORLD);
+    MPI_Scatter(arrayin,1,MPI_FLOAT,&arrayout,1,MPI_FLOAT,0,MPI_COMM_WORLD);
 
-    printf("Processo [%d] ha ricevuto dal Processo [%d]: [", rank, 0);
-    for (int i = 0; i < dim; i++)
-    {
-        printf("%.2f ", array[i]);
-    }
-    printf("]\n");
+    printf("Processo [%d] ha ricevuto dal Processo [%d] il valore %.2f\n", rank, 0, arrayout);
 
     MPI_Barrier(MPI_COMM_WORLD);
     end = MPI_Wtime();
