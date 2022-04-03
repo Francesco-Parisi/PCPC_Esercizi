@@ -6,6 +6,8 @@
 # Description: Compila ed esegue il codice.
 #####################################
 
+#-mca btl_vader_single_copy_mechanism none
+
 printf "\nCompilazione in corso"
 
 for i in 1 2 3; do
@@ -19,7 +21,7 @@ if [ $? -eq 0 ]; then
       sleep 1
       clear
       echo "Compilazione effettuata"
-      mpirun --allow-run-as-root -np $2 $1
+      mpirun --allow-run-as-root -np $2 $1 
 else
       echo "Errore imprevisto!"
 fi
