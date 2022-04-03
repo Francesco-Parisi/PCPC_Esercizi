@@ -9,26 +9,23 @@
 #include <time.h>
 #include "mycollective.h"
 
-int main(int argc, char **argv)
-{
+int main(int argc, char** argv){
 
-    int rank, size;
+    int rank,size; 
     MPI_Status status;
     MPI_Request request;
-
-    MPI_Init(&argc, &argv);
+    
+    MPI_Init(&argc,&argv);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    if (size < 2)
-    {
+    if(size < 2){
         printf("Devi utilizzare almeno due processi per eseguire il programma!\n");
         MPI_Finalize();
         exit(0);
     }
 
-    //BlockingReduce(rank, size, MPI_INT, status);
-    NotBlockingReduce(rank, size, MPI_INT, status,request);
+    BlockingReduce(rank,size,MPI_INT,status);
 
     MPI_Finalize();
 }

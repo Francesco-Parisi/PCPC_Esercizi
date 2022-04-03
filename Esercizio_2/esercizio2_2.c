@@ -34,7 +34,7 @@ int main(int argc, char **argv)
     value = rand() % 100 + 1;
     MPI_Send(&value, 1, MPI_INT, 0, 111, MPI_COMM_WORLD);
     printf("Processo [%d] ha inviato %d al Processo [%d]\n", rank, value, 0);
-    
+
     if (rank == 0)
     {
 

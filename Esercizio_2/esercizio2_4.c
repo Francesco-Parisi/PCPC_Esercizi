@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
     start = MPI_Wtime();
 
-    // NotBlockingBroadcasting(rank,10,size, MPI_INT, status, request);
+    // NotBlockingBroadcasting(rank, 10, size, MPI_INT, status, request);
     // NotBlockingScatter(rank, size, MPI_INT,status, request);
     NotBlockingReduce(rank, size, MPI_INT, status, request);
 

@@ -29,7 +29,7 @@ void BlockingBroadcasting(int rank, int num, int size, MPI_Datatype type, MPI_St
     }
 
     MPI_Recv(array, num, type, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-    printf("Processo [%d] ha ricevuto dal Processo [%d]: [", rank, 0);
+    printf("Processo [%d] ha ricevuto dal Processo [%d]: [ ", rank, 0);
 
     for (int i = 0; i < num; i++)
     {
@@ -118,7 +118,7 @@ void NotBlockingGathering(int rank, int size, MPI_Datatype type, MPI_Status stat
         }
         MPI_Wait(&request, &status);
 
-        printf("Processo [%d] ha recevuto: [ ", rank);
+        printf("Processo [%d] ha ricevuto: [ ", rank);
         for (int i = 0; i < size; i++)
         {
             printf("%d ", array[i]);
@@ -141,7 +141,7 @@ void BlockingScatter(int rank, int size, MPI_Datatype type, MPI_Status status)
         {
             array[i] = i;
         }
-        printf("Processo [%d] ha inviato [", rank);
+        printf("Processo [%d] ha inviato [ ", rank);
         for (int i = 0; i < size; i++)
         {
             MPI_Send(&array[i], 1, type, i, 111, MPI_COMM_WORLD);
@@ -169,7 +169,7 @@ void NotBlockingScatter(int rank, int size, MPI_Datatype type, MPI_Status status
         {
             array[i] = i;
         }
-        printf("Processo [%d] ha inviato [", rank);
+        printf("Processo [%d] ha inviato [ ", rank);
         for (int i = 0; i < size; i++)
         {
             MPI_Isend(&array[i], 1, type, i, 111, MPI_COMM_WORLD, &request);
@@ -264,7 +264,7 @@ void NotBlockingReduce(int rank, int size, MPI_Datatype type, MPI_Status status,
                 min = array[i];
         }
 
-        printf("Processo [%d] ha recevuto: [ ", rank);
+        printf("Processo [%d] ha ricevuto: [ ", rank);
         for (int i = 0; i < size; i++)
         {
             printf("%d ", array[i]);
