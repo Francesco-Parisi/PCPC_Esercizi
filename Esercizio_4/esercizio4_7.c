@@ -1,7 +1,24 @@
+/*** Esercizio 4.7
+ *
+ * Sviluppare un programma MPI che dato un array, A di interi di lunghezza N, utilizza equamente P
+ * processori per aggiornare i valori in A. Ogni elemento A[i] è calcoloato utilizzando la seguente
+ * operazione:
+ * - A[i]=A[i-1]+A[i]+A[i+1], per ogni i, 1...N-2
+ * - A[0]=A[N-1]+[0]+A[1], i=0
+ * - A[N-1]=A[N-2]+[N-1]+A[0], i=N-1
+ * l'array A viene inizializzato nel processo master e gli slave eseguono le operazioni solo sulla
+ * propria porzione di array; ogni processo slave invia la sua porzione di array nuovamente al
+ * master; alla terminazione delle ricezioni il processo master scrive su standard output il tempo
+ * di esecuzione.
+ * 
+ * ***/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <mpi.h>
+
 #define N 10
 
 int main(int argc, char **argv)
@@ -76,9 +93,11 @@ int main(int argc, char **argv)
     for (int j = 0; j < size; j++)
     {
         MPI_Recv(&outbuffer[j], N, MPI_INT, 0, tag, MPI_COMM_WORLD, &status);
-        outbuffer[j] = outbuffer[j - 1] + outbuffer[j];
+        outbuffer[j] = outbuffer[N - 1] + outbuffer[j];
         printf("%d ", outbuffer[j]);
+        fflush(stdout);
     }
+
     printf("\n");
 
     MPI_Barrier(MPI_COMM_WORLD);

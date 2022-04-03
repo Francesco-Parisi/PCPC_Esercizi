@@ -272,22 +272,19 @@ void BlockingReduce(int rank, int size, MPI_Datatype type, MPI_Status status)
 
     srand((unsigned)time(NULL) + rank);
 
-    if (rank != 0)
-    {
-        value = rand() % 100 + 1;
-        MPI_Send(&value, 1, type, 0, 111, MPI_COMM_WORLD);
-        printf("Processo [%d] ha inviato %d al Processo [%d]\n", rank, value, 0);
-    }
-    else
-    {
+    value = rand() % 100 + 1;
+    MPI_Send(&value, 1, type, 0, 111, MPI_COMM_WORLD);
+    printf("Processo [%d] ha inviato %d al Processo [%d]\n", rank, value, 0);
 
-        for (int i = 0; i < size - 1; i++)
+    if (rank == 0)
+    {
+        for (int i = 0; i < size; i++)
         {
             MPI_Recv(&array[i], 1, type, MPI_ANY_SOURCE, 111, MPI_COMM_WORLD, &status);
         }
         min = array[0];
         max = array[0];
-        for (int i = 0; i < size - 1; i++)
+        for (int i = 0; i < size; i++)
         {
             sum += array[i];
             if (max < array[i])
@@ -297,16 +294,16 @@ void BlockingReduce(int rank, int size, MPI_Datatype type, MPI_Status status)
         }
 
         printf("Processo [%d] ha ricevuto: [ ", rank);
-        for (int i = 0; i < size - 1; i++)
+        for (int i = 0; i < size; i++)
         {
             printf("%d ", array[i]);
         }
 
-        float avg = (float)sum / (size - 1);
+        float avg = (float)sum / size;
         printf("]\n\n*----------------------------*\n");
         printf("Massimo: %d\n", max);
         printf("Minimo: %d\n", min);
-        printf("Media: %.3f\n", avg);
+        printf("Media: %.2f\n", avg);
         printf("*----------------------------*\n");
     }
     free(array);
@@ -321,16 +318,13 @@ void NotBlockingReduce(int rank, int size, MPI_Datatype type, MPI_Status status,
 
     srand((unsigned)time(NULL) + rank);
 
-    if (rank != 0)
-    {
-        value = rand() % 100 + 1;
-        MPI_Isend(&value, 1, type, 0, 111, MPI_COMM_WORLD, &request);
-        printf("Processo [%d] ha inviato %d al Processo [%d]\n", rank, value, 0);
-    }
-    else
-    {
+    value = rand() % 100 + 1;
+    MPI_Isend(&value, 1, type, 0, 111, MPI_COMM_WORLD, &request);
+    printf("Processo [%d] ha inviato %d al Processo [%d]\n", rank, value, 0);
 
-        for (int i = 0; i < size - 1; i++)
+    if (rank == 0)
+    {
+        for (int i = 0; i < size; i++)
         {
             MPI_Irecv(&array[i], 1, type, MPI_ANY_SOURCE, 111, MPI_COMM_WORLD, &request);
         }
@@ -338,7 +332,7 @@ void NotBlockingReduce(int rank, int size, MPI_Datatype type, MPI_Status status,
 
         min = array[0];
         max = array[0];
-        for (int i = 0; i < size - 1; i++)
+        for (int i = 0; i < size; i++)
         {
             sum += array[i];
             if (max < array[i])
@@ -348,16 +342,16 @@ void NotBlockingReduce(int rank, int size, MPI_Datatype type, MPI_Status status,
         }
 
         printf("Processo [%d] ha recevuto: [ ", rank);
-        for (int i = 0; i < size - 1; i++)
+        for (int i = 0; i < size; i++)
         {
             printf("%d ", array[i]);
         }
 
-        float avg = (float)sum / (size - 1);
+        float avg = (float)sum / size;
         printf("]\n\n*----------------------------*\n");
         printf("Massimo: %d\n", max);
         printf("Minimo: %d\n", min);
-        printf("Media: %.3f\n", avg);
+        printf("Media: %.2f\n", avg);
         printf("*----------------------------*\n");
     }
     free(array);

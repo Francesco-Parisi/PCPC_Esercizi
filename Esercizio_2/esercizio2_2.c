@@ -31,22 +31,20 @@ int main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
     start = MPI_Wtime();
 
-    if (rank != 0)
-    {
-        value = rand() % 100 + 1;
-        MPI_Send(&value, 1, MPI_INT, 0, 111, MPI_COMM_WORLD);
-        printf("Processo [%d] ha inviato %d al Processo [%d]\n", rank, value, 0);
-    }
-    else
+    value = rand() % 100 + 1;
+    MPI_Send(&value, 1, MPI_INT, 0, 111, MPI_COMM_WORLD);
+    printf("Processo [%d] ha inviato %d al Processo [%d]\n", rank, value, 0);
+    
+    if (rank == 0)
     {
 
-        for (int i = 0; i < size - 1; i++)
+        for (int i = 0; i < size; i++)
         {
             MPI_Recv(&array[i], 1, MPI_INT, MPI_ANY_SOURCE, 111, MPI_COMM_WORLD, &status);
         }
         min = array[0];
         max = array[0];
-        for (int i = 0; i < size - 1; i++)
+        for (int i = 0; i < size; i++)
         {
             sum += array[i];
             if (max < array[i])
@@ -56,11 +54,10 @@ int main(int argc, char **argv)
         }
 
         printf("Processo [%d] ha ricevuto: [ ", rank);
-        for (int i = 0; i < size - 1; i++)
+        for (int i = 0; i < size; i++)
         {
             printf("%d ", array[i]);
         }
-
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -68,7 +65,7 @@ int main(int argc, char **argv)
 
     if (rank == 0)
     {
-        float avg = (float)sum / (size - 1);
+        float avg = (float)sum / size;
         printf("]\n\n*----------------------------*\n");
         printf("Massimo: %d\n", max);
         printf("Minimo: %d\n", min);
@@ -77,7 +74,7 @@ int main(int argc, char **argv)
         printf("*----------------------------*\n");
     }
 
-free(array);
+    free(array);
 
-MPI_Finalize();
+    MPI_Finalize();
 }

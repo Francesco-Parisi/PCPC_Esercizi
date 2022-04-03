@@ -75,8 +75,6 @@ int main(int argc, char **argv)
     printf("]\n");
 
     MPI_Gather(&max, 1, MPI_INT, b, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-    //DA VEDERE CON REDUCE!!!!!!!!!
     
     MPI_Barrier(MPI_COMM_WORLD);
     end = MPI_Wtime();
