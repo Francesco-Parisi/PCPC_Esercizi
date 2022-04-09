@@ -17,19 +17,25 @@
 int main(int argc, char **argv)
 {
 
-    int rank, size;
+    int rank, size, tag = 111;
     double start, end;
 
     srand((unsigned)time(NULL) + rank);
+
+    MPI_Datatype columntype;
+    MPI_Status status;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    int max, min, value;
-    int row = size;
-    int column = size;
-    int a[row][column], maxbuffer[row], minbuffer[column];
+    int min, max, row, column;
+    row = column = size;
+    int matrix[row][column], procColumn[column], procRow[row];
+    int minbuff[size], maxbuff[size];
+
+    MPI_Type_vector(row, 1, column, MPI_INT, &columntype);
+    MPI_Type_commit(&columntype);
 
     if (size < 2)
     {
@@ -47,53 +53,41 @@ int main(int argc, char **argv)
         {
             for (int j = 0; j < column; j++)
             {
-                a[i][j] = rand() % 100;
+                matrix[i][j] = rand() % 100;
             }
         }
 
-        printf("\nProcesso [%d] ha inviato l'array:\n", rank);
+        printf("\nProcesso [%d] ha inviato la matrice:\n", rank);
         for (int i = 0; i < row; i++)
         {
             for (int j = 0; j < column; j++)
             {
-                printf("%d ", a[i][j]);
+                MPI_Send(&matrix[0][j], 1, columntype, j, tag, MPI_COMM_WORLD);
+                printf("%d ", matrix[i][j]);
             }
             printf("\n");
         }
         printf("\n");
     }
+    MPI_Scatter(matrix, row, MPI_INT, procRow, row, MPI_INT, 0, MPI_COMM_WORLD);
 
-    MPI_Bcast(a, row * column, MPI_INT, 0, MPI_COMM_WORLD);
+    // MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Recv(procColumn, row, MPI_INT, 0, tag, MPI_COMM_WORLD, &status);
 
-    min = a[0][rank];
-    for (int i = 0; i < row; i++)
-    {
-        if (min > a[i][rank])
-            min = a[i][rank];
-    }
-
-    max = a[rank][0];
-    for (int i = 0; i < column; i++)
-    {
-        if (max < a[rank][i])
-            max = a[rank][i];
-    }
-
-    MPI_Gather(&min, 1, MPI_INT, minbuffer, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Gather(&max, 1, MPI_INT, maxbuffer, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
+    MPI_Reduce(procRow, minbuff, size, MPI_INT, MPI_MIN, 0, MPI_COMM_WORLD);
+    MPI_Reduce(procColumn, maxbuff, size, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
 
     MPI_Barrier(MPI_COMM_WORLD);
     end = MPI_Wtime();
 
     if (rank == 0)
     {
-        printf("\nIl Processo [%d] ha ricevuto per ogni riga e colonna:\n", rank);
+        printf("\nIl Processo [%d] ha ricevuto:\n", rank);
         fflush(stdout);
 
         for (int i = 0; i < size; i++)
         {
-            printf("Colonna %d - Minimo: %d, Riga %d - Massimo: %d\n", i, minbuffer[i], i, maxbuffer[i]);
+            printf("Processo [%d] - Massimo: %d, Minimo: %d\n", i, maxbuff[i], minbuff[i]);
         }
 
         printf("\n-------------------------------------------*\n");
@@ -101,5 +95,6 @@ int main(int argc, char **argv)
         printf("-------------------------------------------*\n");
     }
 
+    MPI_Type_free(&columntype);
     MPI_Finalize();
 }
