@@ -18,7 +18,7 @@ done
 mpicc $1.c -o $1
 
 if [ $? -eq 0 ]; then
-      sleep 1
+      sleep 0.2
       clear
       echo "Compilazione effettuata"
       mpirun --allow-run-as-root -np $2 $1 

@@ -30,7 +30,7 @@ void Broadcasting(int rank, int num, int size, MPI_Datatype type, MPI_Status sta
     }
 
     MPI_Recv(array, num, type, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-    printf("Processo [%d] ha ricevuto dal Processo [%d]: [", rank, 0);
+    printf("Processo [%d] ha ricevuto dal Processo [%d]: [ ", rank, 0);
 
     for (int i = 0; i < num; i++)
     {
@@ -78,7 +78,7 @@ void Scatter(int rank, int size, MPI_Datatype type, MPI_Status status)
         {
             array[i] = i;
         }
-        printf("Processo [%d] ha inviato [", rank);
+        printf("Processo [%d] ha inviato [ ", rank);
         for (int i = 0; i < size; i++)
         {
             MPI_Send(&array[i], 1, type, i, 111, MPI_COMM_WORLD);
