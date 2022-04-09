@@ -28,7 +28,9 @@ int main(int argc, char **argv)
     int max;
     int row = size;
     int column = 5;
-    int a[row][column], b[row];
+    int *matrix = (int *)malloc(sizeof(int) * row * column);
+    int *proc = malloc(sizeof(int) * column);
+    int maxbuff[size];
 
     if (size < 2)
     {
@@ -46,47 +48,47 @@ int main(int argc, char **argv)
         {
             for (int j = 0; j < column; j++)
             {
-                a[i][j] = rand() % 100;
+                matrix[i * column + j] = rand() % 100;
             }
         }
 
-        printf("\nProcesso [%d] ha inviato l'array:\n", rank);
+        printf("\nProcesso [%d] ha inviato la matrice:\n", rank);
         for (int i = 0; i < row; i++)
         {
             for (int j = 0; j < column; j++)
             {
-                printf("%d ", a[i][j]);
+                printf("%d ", matrix[i * column + j]);
             }
             printf("\n");
         }
         printf("\n");
     }
 
-    MPI_Bcast(a, row * column, MPI_INT, 0, MPI_COMM_WORLD);
-    printf("Processo [%d] ha ricevuto dal Processo [%d]: [ ", rank, 0);
+    MPI_Scatter(matrix, column, MPI_INT, proc, column, MPI_INT, 0, MPI_COMM_WORLD);
 
-    max = a[rank][0];
+    printf("Processo [%d] ha ricevuto: ", rank);
+
+    max = proc[0];
     for (int i = 0; i < column; i++)
     {
-        printf("%d ", a[rank][i]);
-        if (max < a[rank][i])
-            max = a[rank][i];
+        printf("%d ", proc[i]);
+        if (max < proc[i])
+            max = proc[i];
     }
-    printf("]\n");
+    printf("\n");
 
-    MPI_Gather(&max, 1, MPI_INT, b, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    
+    MPI_Gather(&max, 1, MPI_INT, maxbuff, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
     MPI_Barrier(MPI_COMM_WORLD);
     end = MPI_Wtime();
 
     if (rank == 0)
     {
-        printf("\nIl Processo [%d] ha ricevuto il massimo per ogni riga:\n", rank);
-        fflush(stdout);
+        printf("\nIl Processo [%d] ha ricevuto:\n", rank);
 
         for (int i = 0; i < size; i++)
         {
-            printf("Riga %d - Massimo: %d\n", i, b[i]);
+            printf("Riga %d - Massimo: %d\n", i, maxbuff[i]);
         }
 
         printf("\n-------------------------------------------*\n");
