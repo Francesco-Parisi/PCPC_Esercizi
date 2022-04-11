@@ -34,7 +34,8 @@ int main(int argc, char **argv)
 
     // NotBlockingBroadcasting(rank, 10, size, MPI_INT, status, request);
     // NotBlockingScatter(rank, size, MPI_INT,status, request);
-    NotBlockingReduce(rank, size, MPI_INT, status, request);
+    // BlockingReduce(rank, size, MPI_MIN, MPI_INT, status);
+    NotBlockingReduce(rank, size, MPI_MAX, MPI_INT, status, request);
 
     MPI_Barrier(MPI_COMM_WORLD);
     end = MPI_Wtime();

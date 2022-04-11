@@ -187,7 +187,7 @@ void NotBlockingScatter(int rank, int size, MPI_Datatype type, MPI_Status status
 }
 
 // Bloccante - Funzione in grado di supportare gli operatori di massimo, minimo e media di un array di interi.
-void BlockingReduce(int rank, int size, MPI_Datatype type, MPI_Status status)
+void BlockingReduce(int rank, int size, MPI_Op op, MPI_Datatype type, MPI_Status status)
 {
 
     int value, sum = 0, min, max;
@@ -205,16 +205,6 @@ void BlockingReduce(int rank, int size, MPI_Datatype type, MPI_Status status)
         {
             MPI_Recv(&array[i], 1, type, MPI_ANY_SOURCE, 111, MPI_COMM_WORLD, &status);
         }
-        min = array[0];
-        max = array[0];
-        for (int i = 0; i < size; i++)
-        {
-            sum += array[i];
-            if (max < array[i])
-                max = array[i];
-            if (min > array[i])
-                min = array[i];
-        }
 
         printf("Processo [%d] ha ricevuto: [ ", rank);
         for (int i = 0; i < size; i++)
@@ -222,18 +212,48 @@ void BlockingReduce(int rank, int size, MPI_Datatype type, MPI_Status status)
             printf("%d ", array[i]);
         }
 
-        float avg = (float)sum / size;
-        printf("]\n\n*----------------------------*\n");
-        printf("Massimo: %d\n", max);
-        printf("Minimo: %d\n", min);
-        printf("Media: %.2f\n", avg);
-        printf("*----------------------------*\n");
+        if (op == MPI_MIN)
+        {
+            min = array[0];
+            for (int i = 0; i < size; i++)
+            {
+                if (min > array[i])
+                    min = array[i];
+            }
+            printf(" ]\n");
+            printf("Minimo: %d\n", min);
+        }
+        else if (op == MPI_MAX)
+        {
+            max = array[0];
+            for (int i = 0; i < size; i++)
+            {
+                if (max < array[i])
+                    max = array[i];
+            }
+            printf(" ]\n");
+            printf("Massimo: %d\n", max);
+        }
+        else if (op == MPI_SUM)
+        {
+            for (int i = 0; i < size; i++)
+            {
+                sum += array[i];
+            }
+            float avg = (float)sum / size;
+            printf(" ]\n");
+            printf("Somma:%d\nMedia: %.2f\n", sum, avg);
+        }
+        else
+        {
+            printf(" ]\n");
+        }
     }
     free(array);
 }
 
 // Non Bloccante - Funzione in grado di supportare gli operatori di massimo, minimo e media di un array di interi.
-void NotBlockingReduce(int rank, int size, MPI_Datatype type, MPI_Status status, MPI_Request request)
+void NotBlockingReduce(int rank, int size, MPI_Op op, MPI_Datatype type, MPI_Status status, MPI_Request request)
 {
 
     int value, sum = 0, min, max;
@@ -244,7 +264,7 @@ void NotBlockingReduce(int rank, int size, MPI_Datatype type, MPI_Status status,
     value = rand() % 100 + 1;
     MPI_Isend(&value, 1, type, 0, 111, MPI_COMM_WORLD, &request);
     printf("Processo [%d] ha inviato %d al Processo [%d]\n", rank, value, 0);
-
+    fflush(stdout);
     if (rank == 0)
     {
         for (int i = 0; i < size; i++)
@@ -253,29 +273,48 @@ void NotBlockingReduce(int rank, int size, MPI_Datatype type, MPI_Status status,
         }
         MPI_Wait(&request, &status);
 
-        min = array[0];
-        max = array[0];
-        for (int i = 0; i < size; i++)
-        {
-            sum += array[i];
-            if (max < array[i])
-                max = array[i];
-            if (min > array[i])
-                min = array[i];
-        }
-
         printf("Processo [%d] ha ricevuto: [ ", rank);
         for (int i = 0; i < size; i++)
         {
             printf("%d ", array[i]);
         }
 
-        float avg = (float)sum / size;
-        printf("]\n\n*----------------------------*\n");
-        printf("Massimo: %d\n", max);
-        printf("Minimo: %d\n", min);
-        printf("Media: %.2f\n", avg);
-        printf("*----------------------------*\n");
+        if (op == MPI_MIN)
+        {
+            min = array[0];
+            for (int i = 0; i < size; i++)
+            {
+                if (min > array[i])
+                    min = array[i];
+            }
+            printf(" ]\n");
+            printf("Minimo: %d\n", min);
+        }
+        else if (op == MPI_MAX)
+        {
+            max = array[0];
+            for (int i = 0; i < size; i++)
+            {
+                if (max < array[i])
+                    max = array[i];
+            }
+            printf(" ]\n");
+            printf("Massimo: %d\n", max);
+        }
+        else if (op == MPI_SUM)
+        {
+            for (int i = 0; i < size; i++)
+            {
+                sum += array[i];
+            }
+            float avg = (float)sum / size;
+            printf(" ]\n");
+            printf("Somma:%d\nMedia: %.2f\n", sum, avg);
+        }
+        else
+        {
+            printf(" ]\n");
+        }
     }
     free(array);
 }
