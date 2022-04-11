@@ -1,7 +1,9 @@
 /*** Esercizio 1.2
- *** Invio di una stringa (letta da stdin), da parte del 
- *** processo con rank 0, al processo con rank 1.
- ***/
+ *
+ * Invio di una stringa (letta da stdin), da parte del 
+ * processo con rank 0, al processo con rank 1.
+ *
+ * **/
 
 #include <stdio.h>
 #include <string.h>

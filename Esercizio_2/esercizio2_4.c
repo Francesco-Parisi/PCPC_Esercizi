@@ -1,7 +1,12 @@
-/*** Esercizio 2.3
- *** Sviluppare la funzionalità di Reduce nella libreria mycollective , in grado di
- *** supportare gli operatori di massimo, minimo e media di un array di interi
- ***/
+/*** Esercizio 2.4
+ * 
+ * Modificare la libraria mycollective al fine di realizzare le operazioni di gather,
+ * scatter, broadcast, e di reduce in modalità non bloccante. Notare che tali
+ * operazioni coinvolgono più processi di conseguenza bisogna fornire nella
+ * libreria anche un operazione di wating di un array di MPI_Request, si
+ * possono utilizzare le operazioni offerte da MPI.
+ * 
+ * ***/
 
 #include <stdio.h>
 #include <stdlib.h>

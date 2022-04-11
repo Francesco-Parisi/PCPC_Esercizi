@@ -1,6 +1,8 @@
 /*** Esercizio 2.3
- *** Sviluppare la funzionalità di Reduce nella libreria mycollective , in grado di
- *** supportare gli operatori di massimo, minimo e media di un array di interi
+ * 
+ * Sviluppare la funzionalità di Reduce nella libreria mycollective , in grado di
+ * supportare gli operatori di massimo, minimo e media di un array di interi.
+ * 
  ***/
 
 #include <stdio.h>

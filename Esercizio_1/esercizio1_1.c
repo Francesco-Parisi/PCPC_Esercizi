@@ -1,5 +1,7 @@
 /*** Esercizio 1.1 
- *** Scambio di un valore intero tra due processi MPI
+ *
+ * Scambio di un valore intero tra due processi MPI.
+ * 
  ***/
 
 #include <stdio.h>

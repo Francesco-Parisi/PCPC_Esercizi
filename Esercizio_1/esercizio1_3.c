@@ -1,15 +1,18 @@
 /*** Esercizio 1.3
- *   Dati P processi MPI e un array di valori interi e di lunghezza N, si eseguano le operazioni:
- *   Broadcasting, Gathering, Scatter.
- ***
- *   Esercizio 1.4
- *   A partire dal punto precedente, generalizzare i programmi al fine di ottenere una libreria
- *   mycollective. Non ci sono vincoli sulla firma delle funzioni e/o su requisiti computazionali.
- ***
- *   Esercizio 1.5
- *   Valutare le prestazioni della libreria realizzata, nell'invio dei tipi di dato MPI_INT e MPI_CHAR,
- *   calcolando i tempi di esecuzione su singola macchina al variare della dimensione di N e del numero
- *   di processi MPI.
+ *  
+ *  Dati P processi MPI e un array di valori interi e di lunghezza N, si eseguano le operazioni:
+ *  Broadcasting, Gathering, Scatter.
+ * 
+ *** Esercizio 1.4
+ *   
+ *  A partire dal punto precedente, generalizzare i programmi al fine di ottenere una libreria
+ *  mycollective. Non ci sono vincoli sulla firma delle funzioni e/o su requisiti computazionali.
+ *
+ *** Esercizio 1.5
+ * 
+ *  Valutare le prestazioni della libreria realizzata, nell'invio dei tipi di dato MPI_INT e MPI_CHAR,
+ *  calcolando i tempi di esecuzione su singola macchina al variare della dimensione di N e del numero
+ *  di processi MPI.
  *
  ***/
 

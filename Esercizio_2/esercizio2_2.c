@@ -1,7 +1,9 @@
 /*** Esercizio 2.2
- *** Calcolare il massimo, il minimo, la media di array di valori interi utilizzando P
- *** processi ed operazioni di comunicazione in modalità bloccante
- ***/
+ *
+ * Calcolare il massimo, il minimo, la media di array di valori interi utilizzando P
+ * processi ed operazioni di comunicazione in modalità bloccante.
+ *
+ * **/
 
 #include <stdio.h>
 #include <stdlib.h>

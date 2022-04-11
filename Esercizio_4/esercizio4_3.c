@@ -3,6 +3,7 @@
  * Sviluppare un programma MPI che utilizza P processori, il processo con rank 0 in
  * MPI_COMM_WORLD colleziona un insieme di valori float distribuiti tra tutti i processi in
  * MPI_COMM_WORLD.
+ * 
  ***/
 
 #include <stdio.h>
