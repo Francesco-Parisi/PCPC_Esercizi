@@ -11,5 +11,10 @@ https://edu.itp.phys.ethz.ch/hs12/programming_techniques/openmpi.pdf
 Succesivamente, utilizza il file run.sh per compilare ed eseguire il file:
 
 ```sh
-bash run.sh </path/esercizio.out> <numero_processori>
+bash run.sh </path/esercizio.out> <numero_processi>
+```
+In alternativa, digitare i seguenti comandi: 
+```sh
+mpicc <esercizio.c> -o <esercizio.out>
+mpirun --allow-run-as-root -np <numero_processi> <esercizio.out>
 ```
