@@ -27,7 +27,7 @@ int main(int argc, char** argv){
         exit(0);
     }
 
-    BlockingReduce(rank,size,MPI_INT,status);
+    NotBlockingReduce(rank,size,MPI_MIN,MPI_INT,status,request);
 
     MPI_Finalize();
 }

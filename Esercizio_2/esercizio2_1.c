@@ -20,7 +20,7 @@
 #include <mpi.h>
 #include <stdbool.h>
 
-#define S 1500
+#define S 1000
 #define I 10
 
 int main(int argc, char **argv)
@@ -33,9 +33,10 @@ int main(int argc, char **argv)
 
     int sum = 0;
     int count = 0;
-    bool flag = false;
+    int round = 0;
     double start, end;
-
+    bool flag = false;
+    int rounds[I];
     MPI_Status status;
 
     srand((unsigned)time(NULL) + rank);
@@ -43,8 +44,7 @@ int main(int argc, char **argv)
     next = (rank + 1) % size;
     prev = (rank + size - 1) % size;
 
-    if (size < 2)
-    {
+    if (size < 2){
         printf("Devi utilizzare almeno 2 processi per eseguire il programma!\n");
         MPI_Finalize();
         exit(0);
@@ -53,69 +53,62 @@ int main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD); // Tutti i processi sono inizilizzati
     start = MPI_Wtime();         // Avvio tempo
 
-    /*    for (int i = 0; i < I; i++)
-        {
-    */
-
-    while (!flag)
-    {
-        if (rank == 0)
-        {
-            if (count == 0)
-            {
-                value = rand() % 100 + 1;
+    for (int i = 0; i < I; i++) {
+        while(!flag){
+            if(rank == 0){
+                value = rand()%100 +1;
                 sum = sum + value;
-                MPI_Send(&sum, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
-                printf("Processo [%d] - Random ricevuto: %d, Somma inviata al Processo [%d]: %d\n", rank, value, next, sum);
+                round++;
+                MPI_Send(&sum, 1, MPI_INT, next, 222, MPI_COMM_WORLD);
+                
+            } else {
+                MPI_Recv(&sum, 1, MPI_INT, rank-1, 222, MPI_COMM_WORLD, &status);
+                if(sum >= S){
+                    MPI_Send(&sum, 1, MPI_INT, next, 222, MPI_COMM_WORLD);
+                    flag=true;
+                } else {
+                    value = rand()%100 +1;
+                    sum = sum + value;
+                    MPI_Send(&sum, 1, MPI_INT, next, 222, MPI_COMM_WORLD);
+                }
             }
-            count++;
-            MPI_Recv(&sum, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
 
-            if (sum > S)
-            {
-                flag = true;
-                MPI_Send(&sum, 1, MPI_INT, next, 0, MPI_COMM_WORLD);
-            }
-            else
-            {
-                value = rand() % 100 + 1;
-                sum = sum + value;
-                printf("Processo [%d] - Random ricevuto: %d, Somma inviata al Processo [%d]: %d\n", rank, value, next, sum);
-                fflush(stdout);
-                MPI_Send(&sum, 1, MPI_INT, next, 0, MPI_COMM_WORLD);
+            if(rank == 0){
+                MPI_Recv(&sum, 1, MPI_INT, prev , 222, MPI_COMM_WORLD, &status);
+
+                if(sum >= S){
+                    MPI_Send(&sum, 1, MPI_INT, next, 222, MPI_COMM_WORLD);
+                    flag=true;
+                } else {
+                    value = rand()%100 +1;
+                    sum = sum + value;
+                    MPI_Send(&sum, 1, MPI_INT, next, 222, MPI_COMM_WORLD);
+                }
             }
         }
-        else
-        {
+    
+        sum=0;
+        flag=false;
 
-            MPI_Recv(&sum, 1, MPI_INT, prev, 0, MPI_COMM_WORLD, &status);
-
-            if (sum > S)
-            {
-                flag = true;
-                MPI_Send(&sum, 1, MPI_INT, next, 0, MPI_COMM_WORLD);
-            }
-            else
-            {
-                value = rand() % 100 + 1;
-                sum = sum + value;
-
-                MPI_Send(&sum, 1, MPI_INT, next, 0, MPI_COMM_WORLD);
-                printf("Processo [%d] - Random ricevuto: %d, Somma inviata al Processo [%d]: %d\n", rank, value, next, sum);
-                fflush(stdout);
-            }
+        if (rank == 0) {
+            printf("\nIterazione %d terminata in %d round\n", i+1, round);
+            rounds[i] = round;
         }
+        round=1;
     }
-
-    //  }
 
     MPI_Barrier(MPI_COMM_WORLD);
     end = MPI_Wtime();
 
-    if (rank == 0)
-    {
+    if (rank == 0) {
+        int sum_rounds = 0;
+        for (int i = 0; i < I; i++) {
+            sum_rounds += rounds[i];
+        }
+
+        float avg_rounds = sum_rounds / I;
         printf("\n--------------------------*\n");
-        printf("Threshold: %d\nRound Totali: %d\nMedia Round: %.2f\n", S, count, (float)count / I);
+        printf("Threshold: %d\nIterazioni Totali: %d\nMedia Round: %.f\n", S, I, avg_rounds);
         printf("Tempo in ms = %f\n", end - start);
         printf("--------------------------*\n");
     }

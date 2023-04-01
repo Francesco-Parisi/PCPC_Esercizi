@@ -8,8 +8,8 @@
  * valore ricevuto da un processo ha superato una certa soglia S data in input al programma.
  * Il programma al termine delle 10 iterazioni scrive su standard output (rank 0) il numero
  * medio di round di comunicazione necessari per arrivare a convergenza utilizzando P ed S.
- * Notare che tra le varie iterazioni non si deve inizializzare nuovamente il generatore di numeri
- * casuali. Si consiglia di inizializzare i generatori utilizzando il valore del rank.
+ * Notare che tra le varie iterazioni non si deve inizializzare nuovamente il generatore di
+ * numeri casuali. Si consiglia di inizializzare i generatori utilizzando il valore del rank.
  *
  ***/
 
@@ -20,7 +20,7 @@
 #include <mpi.h>
 #include <stdbool.h>
 
-#define S 1500
+#define S 1000
 #define I 10
 
 int main(int argc, char **argv)
@@ -33,8 +33,10 @@ int main(int argc, char **argv)
 
     int sum = 0;
     int count = 0;
+    int round = 0;
     double start, end;
     bool flag = false;
+    int rounds[I];
     MPI_Status status;
     MPI_Request request;
 
@@ -43,77 +45,75 @@ int main(int argc, char **argv)
     next = (rank + 1) % size;
     prev = (rank + size - 1) % size;
 
-    if (size < 2)
-    {
+    if (size < 2){
         printf("Devi utilizzare almeno 2 processi per eseguire il programma!\n");
         MPI_Finalize();
         exit(0);
     }
+
+    MPI_Barrier(MPI_COMM_WORLD); // Tutti i processi sono inizilizzati
+    start = MPI_Wtime();         // Avvio tempo
+
+    for (int i = 0; i < I; i++) {
+        while(!flag){
+            if(rank == 0){
+                value = rand()%100 +1;
+                sum = sum + value;
+                round++;
+                MPI_Isend(&sum, 1, MPI_INT, next, 222, MPI_COMM_WORLD, &request);
+                
+            } else {
+                MPI_Irecv(&sum, 1, MPI_INT, rank-1, 222, MPI_COMM_WORLD, &request);
+                MPI_Wait(&request, &status);
+
+                if(sum >= S){
+                    MPI_Isend(&sum, 1, MPI_INT, next, 222, MPI_COMM_WORLD, &request);
+                    flag=true;
+                } else {
+                    value = rand()%100 +1;
+                    sum = sum + value;
+                    MPI_Isend(&sum, 1, MPI_INT, next, 222, MPI_COMM_WORLD, &request);
+                }
+            }
+
+            if(rank == 0){
+                MPI_Irecv(&sum, 1, MPI_INT, prev , 222, MPI_COMM_WORLD, &request);
+                MPI_Wait(&request, &status);
+
+                if(sum >= S){
+                    MPI_Isend(&sum, 1, MPI_INT, next, 222, MPI_COMM_WORLD, &request);
+                    flag=true;
+                } else {
+                    value = rand()%100 +1;
+                    sum = sum + value;
+                    MPI_Isend(&sum, 1, MPI_INT, next, 222, MPI_COMM_WORLD,&request);
+                }
+            }
+        }
     
-    MPI_Barrier(MPI_COMM_WORLD); //Tutti i processi sono inizilizzati
-    start= MPI_Wtime(); //Avvio tempo
+        sum=0;
+        flag=false;
 
-    if (rank == 0)
-    {
-        while (!flag)
-        {
-            if (count == 0)
-            {
-                value = rand() % 100 + 1;
-                sum = sum + value;
-                MPI_Isend(&sum, 1, MPI_INT, 1, 0, MPI_COMM_WORLD, &request);
-                printf("Processo [%d] - Random ricevuto: %d, Somma inviata al Processo [%d]: %d\n", rank, value, next, sum);
-            }
-            count++;
-            // printf("count: %d\n", count);
-            MPI_Irecv(&sum, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &request);
-            MPI_Wait(&request,&status);
-
-            if (sum > S)
-            {
-                flag = true;
-                MPI_Isend(&sum, 1, MPI_INT, next, 0, MPI_COMM_WORLD, &request);
-            }
-            else
-            {
-                value = rand() % 100 + 1;
-                sum = sum + value;
-                printf("Processo [%d] - Random ricevuto: %d, Somma inviata al Processo [%d]: %d\n", rank, value, next, sum);
-                fflush(stdout);
-                MPI_Isend(&sum, 1, MPI_INT, next, 0, MPI_COMM_WORLD, &request);
-            }
+        if (rank == 0) {
+            printf("\nIterazione %d terminata in %d round\n", i+1, round);
+            rounds[i] = round;
         }
-    }
-    else
-    {
-        while (!flag)
-        {
-            MPI_Recv(&sum, 1, MPI_INT, prev, 0, MPI_COMM_WORLD, &status);
-            value = rand() % 100 + 1;
-            sum = sum + value;
-
-            if (sum <= S)
-            {
-                MPI_Send(&sum, 1, MPI_INT, next, 0, MPI_COMM_WORLD);
-                printf("Processo [%d] - Random ricevuto: %d, Somma inviata al Processo [%d]: %d\n", rank, value, next, sum);
-                fflush(stdout);
-            }
-            else
-            {
-                flag = true;
-                MPI_Send(&sum, 1, MPI_INT, next, 0, MPI_COMM_WORLD);
-            }
-        }
+        round=1;
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
     end = MPI_Wtime();
-    
-    if (rank == 0)
-    {
+
+    if (rank == 0) {
+        int sum_rounds = 0;
+        for (int i = 0; i < I; i++) {
+            sum_rounds += rounds[i];
+        }
+
+        float avg_rounds = sum_rounds / I;
         printf("\n--------------------------*\n");
-        printf("Threshold: %d\nRound Totali: %d\nMedia Round: %.2f\n", S,count, (float)count / I);
-        printf("Tempo in ms = %f\n", end-start);
+        printf("Threshold: %d\nIterazioni Totali: %d\nMedia Round: %.f\n", S, I, avg_rounds);
+        printf("Tempo in ms = %f\n", end - start);
         printf("--------------------------*\n");
     }
 

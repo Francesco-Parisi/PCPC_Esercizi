@@ -221,7 +221,9 @@ void BlockingReduce(int rank, int size, MPI_Op op, MPI_Datatype type, MPI_Status
                     min = array[i];
             }
             printf(" ]\n");
+            printf("\n--------------------------*\n");
             printf("Minimo: %d\n", min);
+            printf("--------------------------*\n");
         }
         else if (op == MPI_MAX)
         {
@@ -232,7 +234,9 @@ void BlockingReduce(int rank, int size, MPI_Op op, MPI_Datatype type, MPI_Status
                     max = array[i];
             }
             printf(" ]\n");
+            printf("\n--------------------------*\n");
             printf("Massimo: %d\n", max);
+            printf("--------------------------*\n");
         }
         else if (op == MPI_SUM)
         {
@@ -242,7 +246,9 @@ void BlockingReduce(int rank, int size, MPI_Op op, MPI_Datatype type, MPI_Status
             }
             float avg = (float)sum / size;
             printf(" ]\n");
+            printf("\n--------------------------*\n");
             printf("Somma:%d\nMedia: %.2f\n", sum, avg);
+            printf("--------------------------*\n");
         }
         else
         {
@@ -288,7 +294,9 @@ void NotBlockingReduce(int rank, int size, MPI_Op op, MPI_Datatype type, MPI_Sta
                     min = array[i];
             }
             printf(" ]\n");
+            printf("\n--------------------------*\n");
             printf("Minimo: %d\n", min);
+            printf("--------------------------*\n");
         }
         else if (op == MPI_MAX)
         {
@@ -299,7 +307,9 @@ void NotBlockingReduce(int rank, int size, MPI_Op op, MPI_Datatype type, MPI_Sta
                     max = array[i];
             }
             printf(" ]\n");
+            printf("\n--------------------------*\n");
             printf("Massimo: %d\n", max);
+            printf("--------------------------*\n");
         }
         else if (op == MPI_SUM)
         {
@@ -309,7 +319,9 @@ void NotBlockingReduce(int rank, int size, MPI_Op op, MPI_Datatype type, MPI_Sta
             }
             float avg = (float)sum / size;
             printf(" ]\n");
+            printf("\n--------------------------*\n");
             printf("Somma:%d\nMedia: %.2f\n", sum, avg);
+            printf("--------------------------*\n");
         }
         else
         {
