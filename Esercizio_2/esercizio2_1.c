@@ -32,7 +32,6 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     int sum = 0;
-    int count = 0;
     int round = 0;
     double start, end;
     bool flag = false;
@@ -50,7 +49,7 @@ int main(int argc, char **argv)
         exit(0);
     }
 
-    MPI_Barrier(MPI_COMM_WORLD); // Tutti i processi sono inizilizzati
+    MPI_Barrier(MPI_COMM_WORLD); // Tutti i processi sono inizializzati
     start = MPI_Wtime();         // Avvio tempo
 
     for (int i = 0; i < I; i++) {
